@@ -442,7 +442,7 @@ async function callMinimaxAPI(prompt: string, systemPrompt: string): Promise<str
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 1500,
+        max_tokens: 800,
         temperature: 0.9,
       }),
     });
@@ -484,7 +484,7 @@ async function callKimiAPI(prompt: string, systemPrompt: string): Promise<string
           { role: 'system', content: systemPrompt },
           { role: 'user', content: prompt }
         ],
-        max_tokens: 1500,
+        max_tokens: 800,
         temperature: 0.9,
       }),
     });
@@ -811,20 +811,12 @@ export async function POST(request: NextRequest) {
 
     console.log(`Generating content for: "${topic}" (${style})`);
 
-    // 并行生成3个不同版本
-    const results = await Promise.all([
-      generateContent(topic, style, 0),
-      new Promise<GeneratedContent>(resolve => 
-        setTimeout(() => resolve(generateContent(topic, style, 1)), 300)
-      ),
-      new Promise<GeneratedContent>(resolve => 
-        setTimeout(() => resolve(generateContent(topic, style, 2)), 600)
-      )
-    ]);
+    // 生成1个版本（节省token）
+    const result = await generateContent(topic, style, 0);
 
-    console.log('Generated 3 variations successfully');
+    console.log('Generated 1 variation successfully');
 
-    return NextResponse.json({ results });
+    return NextResponse.json({ results: [result] });
   } catch (error) {
     console.error('Generate error:', error);
     return NextResponse.json(
