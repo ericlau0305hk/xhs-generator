@@ -457,7 +457,7 @@ ${angle}
 }
 
 // ===== 增强版 AI 响应解析 =====
-function parseAIResponse(content: string, style: string): GeneratedContent {
+function parseAIResponse(content: string, style: string, topic: string): GeneratedContent {
   console.log('Parsing AI response:', content.substring(0, 200) + '...');
   
   try {
@@ -568,14 +568,14 @@ async function generateContent(
   try {
     console.log(`[${variation}] Trying Minimax...`);
     const content = await callMinimaxAPI(prompt, systemPrompt);
-    return parseAIResponse(content, style);
+    return parseAIResponse(content, style, topic);
   } catch (minimaxError) {
     console.log(`[${variation}] Minimax failed, trying Kimi...`);
     
     // Minimax 失败，尝试 Kimi
     try {
       const content = await callKimiAPI(prompt, systemPrompt);
-      return parseAIResponse(content, style);
+      return parseAIResponse(content, style, topic);
     } catch (kimiError) {
       console.log(`[${variation}] Kimi also failed.`);
       
