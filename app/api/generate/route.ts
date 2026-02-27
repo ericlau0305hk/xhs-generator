@@ -423,8 +423,11 @@ async function callMinimaxAPI(prompt: string, systemPrompt: string): Promise<str
   const apiKey = process.env.MINIMAX_API_KEY;
   
   if (!apiKey) {
+    console.error('Minimax API Key not found in environment variables');
     throw new Error('MINIMAX_API_KEY not configured');
   }
+  
+  console.log(`Minimax API Key configured: ${apiKey.substring(0, 8)}...`);
 
   try {
     const response = await fetch('https://api.minimaxi.com/v1/text/chatcompletion_v2', {
@@ -462,8 +465,11 @@ async function callKimiAPI(prompt: string, systemPrompt: string): Promise<string
   const apiKey = process.env.KIMI_API_KEY;
   
   if (!apiKey) {
+    console.error('Kimi API Key not found in environment variables');
     throw new Error('KIMI_API_KEY not configured');
   }
+  
+  console.log(`Kimi API Key configured: ${apiKey.substring(0, 8)}...`);
 
   try {
     const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
@@ -753,16 +759,21 @@ async function generateContent(
   try {
     console.log(`[${variation}] Trying Minimax...`);
     const content = await callMinimaxAPI(prompt, systemPrompt);
+    console.log(`[${variation}] Minimax success!`);
     return parseAIResponse(content, style, topic);
   } catch (minimaxError) {
-    console.log(`[${variation}] Minimax failed, trying Kimi...`);
+    const minimaxErrMsg = minimaxError instanceof Error ? minimaxError.message : String(minimaxError);
+    console.log(`[${variation}] Minimax failed: ${minimaxErrMsg}`);
     
     // Minimax 失败，尝试 Kimi
     try {
+      console.log(`[${variation}] Trying Kimi...`);
       const content = await callKimiAPI(prompt, systemPrompt);
+      console.log(`[${variation}] Kimi success!`);
       return parseAIResponse(content, style, topic);
     } catch (kimiError) {
-      console.log(`[${variation}] Kimi also failed.`);
+      const kimiErrMsg = kimiError instanceof Error ? kimiError.message : String(kimiError);
+      console.log(`[${variation}] Kimi failed: ${kimiErrMsg}`);
       
       // 如果还有重试次数，递归重试
       if (retryCount < maxRetries) {
@@ -772,7 +783,7 @@ async function generateContent(
       }
       
       // 所有尝试都失败，使用模拟数据
-      console.log(`[${variation}] Using mock content`);
+      console.log(`[${variation}] All APIs failed, using mock content. Minimax error: ${minimaxErrMsg}, Kimi error: ${kimiErrMsg}`);
       return generateMockContent(topic, style, variation);
     }
   }
